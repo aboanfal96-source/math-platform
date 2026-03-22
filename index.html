@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#0a0e27"/>
+<title>منصة عواطف | رياضيات ٣م</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e27;font-family:'Noto Kufi Arabic','Segoe UI',sans-serif;direction:rtl;color:#e8e6f0}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:rgba(139,92,246,0.05)}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:3px}
+input,textarea,select,button{font-family:inherit}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn 0.3s ease}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+// Storage
+const SK = {
+  STU:"awatif-stu",ASN:"awatif-asn",SUB:"awatif-sub",
+  QZ:"awatif-qz",QR:"awatif-qr",CH:"awatif-ch",
+  HN:"awatif-hn",AN:"awatif-an"
+};
+const load=(k,fb)=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):fb}catch{return fb}};
+const save=(k,d)=>{try{localStorage.setItem(k,JSON.stringify(d))}catch(e){console.error(e)}};
+
+// Data
+const LESSONS=[
+  {id:"l1",title:"الأعداد الحقيقية",desc:"تصنيف الأعداد الحقيقية والعمليات عليها",icon:"🔢",unit:"الوحدة 1"},
+  {id:"l2",title:"العلاقات والدوال",desc:"مفهوم العلاقة والدالة وتمثيلها بيانياً",icon:"📈",unit:"الوحدة 1"},
+  {id:"l3",title:"المعادلات الخطية",desc:"حل المعادلات الخطية بمتغير واحد",icon:"➗",unit:"الوحدة 2"},
+  {id:"l4",title:"المتباينات الخطية",desc:"حل المتباينات وتمثيلها على خط الأعداد",icon:"⚖️",unit:"الوحدة 2"},
+  {id:"l5",title:"كثيرات الحدود",desc:"جمع وطرح وضرب كثيرات الحدود",icon:"🧮",unit:"الوحدة 3"},
+  {id:"l6",title:"التحليل والمتطابقات",desc:"تحليل العبارات الجبرية والمتطابقات",icon:"🔍",unit:"الوحدة 3"},
+  {id:"l7",title:"الإحصاء والاحتمالات",desc:"المتوسط الحسابي والوسيط والمنوال",icon:"📊",unit:"الوحدة 4"},
+  {id:"l8",title:"الهندسة والقياس",desc:"المساحة والمحيط والحجم",icon:"📐",unit:"الوحدة 4"},
+];
+const LINKS=[
+  {title:"عواطف معكم",url:"https://awatif-math.vercel.app/",icon:"🤖",desc:"مساعد الرياضيات الذكي"},
+  {title:"منصة مدرستي",url:"https://schools.madrasati.sa",icon:"🏫",desc:"المنصة الرسمية للتعليم"},
+  {title:"بوابة عين",url:"https://ien.edu.sa",icon:"👁️",desc:"محتوى تعليمي تفاعلي"},
+  {title:"الكتاب التفاعلي",url:"https://ien.edu.sa/#/textbooks",icon:"📖",desc:"الكتاب المدرسي الإلكتروني"},
+  {title:"منصة سهل",url:"https://sahl.io",icon:"🎥",desc:"شروحات فيديو للمناهج"},
+];
+
+// Styles
+const iS={width:"100%",padding:"13px 16px",border:"1px solid rgba(139,92,246,0.25)",borderRadius:12,fontSize:14,fontFamily:"inherit",direction:"rtl",background:"rgba(139,92,246,0.06)",color:"#e8e6f0",outline:"none",boxSizing:"border-box",marginTop:6};
+const bkS={width:"100%",padding:10,border:"none",borderRadius:8,cursor:"pointer",fontSize:13,fontFamily:"inherit",color:"#8b8b9e",background:"transparent",marginTop:12,textAlign:"right"};
+const lbS=(bg)=>({width:"100%",padding:14,border:"none",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:600,fontFamily:"inherit",color:"#fff",background:bg,marginTop:8,transition:"all 0.2s",boxShadow:bg!=="transparent"?"0 4px 20px rgba(139,92,246,0.2)":"none"});
+
+function Card({children,style={},onClick}){
+  return <div onClick={onClick} className="fade-in" style={{background:"rgba(20,15,50,0.6)",borderRadius:16,border:"1px solid rgba(139,92,246,0.12)",padding:20,backdropFilter:"blur(10px)",transition:"all 0.25s",...(onClick?{cursor:"pointer"}:{}),...style}}>{children}</div>;
+}
+function PT({icon,title,sub}){
+  return <div style={{marginBottom:28}}><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}><span style={{fontSize:28}}>{icon}</span><h2 style={{margin:0,fontSize:22,fontWeight:700,background:"linear-gradient(135deg,#c4b5fd,#67e8f9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{title}</h2></div>{sub&&<p style={{margin:"4px 0 0 40px",fontSize:13,color:"#8b8b9e"}}>{sub}</p>}</div>;
+}
+function SC({icon,label,value,color}){
+  return <Card style={{textAlign:"center",minWidth:120}}><div style={{fontSize:28,marginBottom:6}}>{icon}</div><div style={{fontSize:24,fontWeight:700,color:color||"#c4b5fd"}}>{value}</div><div style={{fontSize:12,color:"#8b8b9e",marginTop:2}}>{label}</div></Card>;
+}
+
+// Login
+function Login({students,updateStudents,onLogin}){
+  const[mode,setMode]=useState("select");
+  const[name,setName]=useState("");
+  const[pw,setPw]=useState("");
+  const[err,setErr]=useState("");
+  const tPw="awatif2026";
+  const doTeacher=()=>{if(pw===tPw)onLogin({name:"أ. عواطف العتيبي",role:"teacher"});else setErr("كلمة المرور غير صحيحة")};
+  const doReg=()=>{const t=name.trim();if(!t){setErr("الرجاء إدخال الاسم");return}if(students.find(s=>s.name===t)){setErr("الاسم مسجل مسبقاً");return}const ns=[...students,{name:t,id:"s"+Date.now(),joinDate:new Date().toISOString()}];updateStudents(ns);onLogin({name:t,role:"student"})};
+
+  return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#0a0e27 0%,#1a1040 40%,#0d1a3a 100%)",padding:16}}>
+    <div style={{width:"100%",maxWidth:440,position:"relative"}}>
+      <div style={{position:"absolute",top:-60,right:-60,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{background:"rgba(20,15,50,0.85)",borderRadius:24,border:"1px solid rgba(139,92,246,0.2)",backdropFilter:"blur(20px)",padding:"40px 32px",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:"60%",height:2,background:"linear-gradient(90deg,transparent,#8b5cf6,#06b6d4,transparent)"}}/>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{width:72,height:72,borderRadius:18,background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,margin:"0 auto 16px",boxShadow:"0 8px 32px rgba(139,92,246,0.3)"}}>📐</div>
+          <h1 style={{margin:0,fontSize:26,fontWeight:800,background:"linear-gradient(135deg,#c4b5fd,#67e8f9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>منصة عواطف</h1>
+          <p style={{margin:"6px 0 0",fontSize:13,color:"#8b8b9e"}}>رياضيات الصف الثالث المتوسط</p>
+        </div>
+        {mode==="select"&&<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <button onClick={()=>setMode("teacher")} style={lbS("linear-gradient(135deg,#f59e0b,#ef4444)")}>👩‍🏫 دخول المعلمة</button>
+          <button onClick={()=>setMode("student")} style={lbS("linear-gradient(135deg,#8b5cf6,#06b6d4)")}>👩‍🎓 دخول طالبة</button>
+          <button onClick={()=>setMode("register")} style={{...lbS("transparent"),border:"1px solid rgba(139,92,246,0.3)",color:"#c4b5fd"}}>✨ تسجيل طالبة جديدة</button>
+        </div>}
+        {mode==="teacher"&&<div>
+          <label style={{display:"block",fontSize:13,fontWeight:500,color:"#a5a3b5",marginBottom:4}}>كلمة المرور</label>
+          <input type="password" value={pw} onChange={e=>{setPw(e.target.value);setErr("")}} placeholder="••••••••" style={iS} onKeyDown={e=>e.key==="Enter"&&doTeacher()}/>
+          {err&&<p style={{color:"#f87171",fontSize:12,margin:"6px 0 0"}}>{err}</p>}
+          <button onClick={doTeacher} style={lbS("linear-gradient(135deg,#f59e0b,#ef4444)")}>تسجيل الدخول</button>
+          <button onClick={()=>{setMode("select");setErr("");setPw("")}} style={bkS}>← رجوع</button>
+        </div>}
+        {mode==="student"&&<div>
+          {students.length===0?<div style={{textAlign:"center",padding:20}}><p style={{color:"#8b8b9e"}}>لا توجد طالبات مسجلات</p><button onClick={()=>setMode("register")} style={lbS("linear-gradient(135deg,#8b5cf6,#06b6d4)")}>تسجيل كطالبة جديدة</button></div>
+          :<div style={{display:"flex",flexDirection:"column",gap:8,maxHeight:300,overflowY:"auto"}}>
+            {students.map(s=><button key={s.id} onClick={()=>onLogin({name:s.name,role:"student"})} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.15)",borderRadius:12,cursor:"pointer",fontSize:14,fontFamily:"inherit",color:"#e8e6f0",direction:"rtl",textAlign:"right"}}>
+              <span style={{width:32,height:32,borderRadius:8,background:"linear-gradient(135deg,#06b6d4,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>👩‍🎓</span>{s.name}
+            </button>)}
+          </div>}
+          <button onClick={()=>{setMode("select");setErr("")}} style={bkS}>← رجوع</button>
+        </div>}
+        {mode==="register"&&<div>
+          <label style={{display:"block",fontSize:13,fontWeight:500,color:"#a5a3b5",marginBottom:4}}>اسم الطالبة</label>
+          <input value={name} onChange={e=>{setName(e.target.value);setErr("")}} placeholder="أدخلي اسمك الكامل" style={iS} onKeyDown={e=>e.key==="Enter"&&doReg()}/>
+          {err&&<p style={{color:"#f87171",fontSize:12,margin:"6px 0 0"}}>{err}</p>}
+          <button onClick={doReg} style={lbS("linear-gradient(135deg,#8b5cf6,#06b6d4)")}>تسجيل ودخول</button>
+          <button onClick={()=>{setMode("select");setErr("");setName("")}} style={bkS}>← رجوع</button>
+        </div>}
+      </div>
+    </div>
+  </div>;
+}
+
+// Home
+function Home({user,isT,assignments,submissions,students,quizResults,announcements,updateAnnouncements,setPage}){
+  const[na,setNa]=useState("");
+  const addA=()=>{if(!na.trim())return;updateAnnouncements([{id:"a"+Date.now(),text:na.trim(),date:new Date().toISOString()},...announcements]);setNa("")};
+  const pending=isT?assignments.filter(a=>new Date(a.deadline)>new Date()).length:assignments.filter(a=>!submissions.find(s=>s.assignmentId===a.id&&s.studentName===user.name)).length;
+
+  return <div>
+    <PT icon="🏠" title={isT?"مرحباً أستاذة عواطف":`مرحباً ${user.name}`} sub={isT?"لوحة التحكم الرئيسية":"صفحتك الرئيسية"}/>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12,marginBottom:24}}>
+      {isT?<><SC icon="👩‍🎓" label="الطالبات" value={students.length} color="#67e8f9"/><SC icon="📝" label="الواجبات" value={assignments.length} color="#a78bfa"/><SC icon="📤" label="التسليمات" value={submissions.length} color="#34d399"/><SC icon="🏆" label="نتائج" value={quizResults.length} color="#fbbf24"/></>
+      :<><SC icon="📝" label="واجبات معلقة" value={pending} color="#f87171"/><SC icon="✅" label="واجبات مسلمة" value={submissions.filter(s=>s.studentName===user.name).length} color="#34d399"/><SC icon="📊" label="اختبارات" value={quizResults.filter(r=>r.studentName===user.name).length} color="#67e8f9"/></>}
+    </div>
+    <Card style={{marginBottom:20}}>
+      <h3 style={{margin:"0 0 14px",fontSize:16,fontWeight:600,color:"#c4b5fd"}}>📢 الإعلانات</h3>
+      {isT&&<div style={{display:"flex",gap:8,marginBottom:14}}><input value={na} onChange={e=>setNa(e.target.value)} placeholder="أضيفي إعلان جديد..." style={{...iS,flex:1,marginTop:0}} onKeyDown={e=>e.key==="Enter"&&addA()}/><button onClick={addA} style={{padding:"0 20px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:12,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,whiteSpace:"nowrap"}}>نشر</button></div>}
+      {announcements.length===0?<p style={{color:"#8b8b9e",fontSize:13,textAlign:"center",padding:10}}>لا توجد إعلانات</p>
+      :<div style={{display:"flex",flexDirection:"column",gap:8}}>{announcements.slice(0,5).map(a=><div key={a.id} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"10px 14px",background:"rgba(139,92,246,0.06)",borderRadius:10,gap:12}}><p style={{margin:0,fontSize:13,color:"#d4d2e0",flex:1}}>{a.text}</p><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:11,color:"#6b6b80",whiteSpace:"nowrap"}}>{new Date(a.date).toLocaleDateString("ar-SA")}</span>{isT&&<button onClick={()=>updateAnnouncements(announcements.filter(x=>x.id!==a.id))} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",padding:2,fontSize:14}}>✕</button>}</div></div>)}</div>}
+    </Card>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12}}>
+      {[{id:"lessons",icon:"📚",l:"الدروس"},{id:"assignments",icon:"📝",l:isT?"الواجبات":"واجباتي"},{id:"quizzes",icon:"❓",l:isT?"الاختبارات":"اختباراتي"},{id:"chat",icon:"💬",l:"المحادثات"}].map(i=><Card key={i.id} onClick={()=>setPage(i.id)} style={{textAlign:"center",cursor:"pointer"}}><span style={{fontSize:28}}>{i.icon}</span><p style={{margin:"8px 0 0",fontSize:13,color:"#a5a3b5"}}>{i.l}</p></Card>)}
+    </div>
+  </div>;
+}
+
+// Lessons
+function LessonsP(){
+  const[sel,setSel]=useState(null);
+  const units=[...new Set(LESSONS.map(l=>l.unit))];
+  if(sel)return <div><button onClick={()=>setSel(null)} style={bkS}>← رجوع</button><Card style={{marginTop:12}}><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><span style={{fontSize:40}}>{sel.icon}</span><div><h3 style={{margin:0,fontSize:20,fontWeight:700,color:"#c4b5fd"}}>{sel.title}</h3><p style={{margin:"4px 0 0",fontSize:13,color:"#8b8b9e"}}>{sel.unit}</p></div></div><p style={{color:"#b8b6c8",fontSize:14,lineHeight:1.8,marginBottom:16}}>{sel.desc}</p><div style={{background:"rgba(139,92,246,0.08)",borderRadius:12,padding:16,marginBottom:16}}><h4 style={{margin:"0 0 10px",fontSize:14,color:"#a78bfa"}}>🎯 أهداف الدرس</h4><p style={{margin:0,fontSize:13,color:"#9898ae",lineHeight:2}}>• فهم مفهوم {sel.title} وتطبيقاتها<br/>• حل مسائل متنوعة<br/>• ربط المفاهيم بالحياة اليومية</p></div><div style={{display:"flex",gap:10,flexWrap:"wrap"}}><a href="https://awatif-math.vercel.app/" target="_blank" style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 18px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",borderRadius:10,color:"#fff",textDecoration:"none",fontSize:13,fontWeight:600,fontFamily:"inherit"}}>🤖 عواطف معكم</a><a href="https://ien.edu.sa/#/textbooks" target="_blank" style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 18px",background:"rgba(139,92,246,0.15)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:10,color:"#c4b5fd",textDecoration:"none",fontSize:13,fontFamily:"inherit"}}>📖 الكتاب التفاعلي</a></div></Card></div>;
+  return <div><PT icon="📚" title="الدروس والشروحات" sub="رياضيات الصف الثالث المتوسط"/>{units.map(u=><div key={u} style={{marginBottom:24}}><h3 style={{fontSize:15,fontWeight:600,color:"#a78bfa",marginBottom:12,paddingBottom:8,borderBottom:"1px solid rgba(139,92,246,0.15)"}}>{u}</h3><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>{LESSONS.filter(l=>l.unit===u).map(l=><Card key={l.id} onClick={()=>setSel(l)} style={{cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:32,flexShrink:0}}>{l.icon}</span><div><h4 style={{margin:0,fontSize:14,fontWeight:600,color:"#e8e6f0"}}>{l.title}</h4><p style={{margin:"4px 0 0",fontSize:11,color:"#8b8b9e"}}>{l.desc}</p></div></div></Card>)}</div></div>)}</div>;
+}
+
+// Assignments
+function AssignP({isT,user,assignments,updateA,submissions,updateS,students}){
+  const[sf,setSf]=useState(false);
+  const[t,setT]=useState("");const[d,setD]=useState("");const[dl,setDl]=useState("");
+  const[vs,setVs]=useState(null);const[st,setSt]=useState("");
+  const addA=()=>{if(!t.trim()||!dl)return;updateA([{id:"hw"+Date.now(),title:t.trim(),desc:d.trim(),deadline:dl,createdAt:new Date().toISOString()},...assignments]);setT("");setD("");setDl("");setSf(false)};
+  const subW=(aid)=>{if(!st.trim())return;updateS([{id:"sub"+Date.now(),assignmentId:aid,studentName:user.name,text:st.trim(),submittedAt:new Date().toISOString(),grade:null},...submissions]);setSt("")};
+  const grade=(sid,g)=>updateS(submissions.map(s=>s.id===sid?{...s,grade:g}:s));
+
+  if(vs&&isT)return <div><button onClick={()=>setVs(null)} style={bkS}>← رجوع</button><h3 style={{fontSize:16,color:"#c4b5fd",margin:"12px 0"}}>تسليمات: {assignments.find(a=>a.id===vs)?.title}</h3>{submissions.filter(s=>s.assignmentId===vs).length===0?<Card><p style={{color:"#8b8b9e",textAlign:"center"}}>لا توجد تسليمات بعد</p></Card>:submissions.filter(s=>s.assignmentId===vs).map(sub=><Card key={sub.id} style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><span style={{fontWeight:600,color:"#67e8f9"}}>{sub.studentName}</span><span style={{fontSize:11,color:"#6b6b80"}}>{new Date(sub.submittedAt).toLocaleDateString("ar-SA")}</span></div><p style={{margin:"0 0 10px",fontSize:13,color:"#b8b6c8",lineHeight:1.7}}>{sub.text}</p><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:12,color:"#8b8b9e"}}>التقييم:</span>{[1,2,3,4,5].map(g=><button key={g} onClick={()=>grade(sub.id,g)} style={{width:32,height:32,borderRadius:8,border:"none",cursor:"pointer",fontWeight:600,fontSize:13,fontFamily:"inherit",background:sub.grade===g?"linear-gradient(135deg,#f59e0b,#ef4444)":"rgba(139,92,246,0.1)",color:sub.grade===g?"#fff":"#8b8b9e"}}>{g}</button>)}<span style={{fontSize:11,color:"#6b6b80"}}>/ ٥</span></div></Card>)}</div>;
+
+  return <div><PT icon="📝" title={isT?"إدارة الواجبات":"واجباتي"}/>
+    {isT&&<button onClick={()=>setSf(!sf)} style={{display:"flex",alignItems:"center",gap:8,padding:"10px 20px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:12,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,marginBottom:16}}>+ واجب جديد</button>}
+    {sf&&<Card style={{marginBottom:16}}><h4 style={{margin:"0 0 12px",color:"#c4b5fd"}}>واجب جديد</h4><input value={t} onChange={e=>setT(e.target.value)} placeholder="عنوان الواجب" style={{...iS,marginBottom:8}}/><textarea value={d} onChange={e=>setD(e.target.value)} placeholder="وصف الواجب" rows={3} style={{...iS,resize:"vertical",marginBottom:8}}/><input type="date" value={dl} onChange={e=>setDl(e.target.value)} style={{...iS,marginBottom:12}}/><div style={{display:"flex",gap:8}}><button onClick={addA} style={{padding:"10px 24px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13}}>إضافة</button><button onClick={()=>setSf(false)} style={{padding:"10px 24px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(139,92,246,0.2)",borderRadius:10,color:"#8b8b9e",cursor:"pointer",fontFamily:"inherit",fontSize:13}}>إلغاء</button></div></Card>}
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+      {assignments.length===0?<Card><p style={{color:"#8b8b9e",textAlign:"center"}}>لا توجد واجبات</p></Card>:assignments.map(a=>{
+        const ms=!isT?submissions.find(s=>s.assignmentId===a.id&&s.studentName===user.name):null;
+        const sc=submissions.filter(s=>s.assignmentId===a.id).length;
+        const ov=new Date(a.deadline)<new Date();
+        return <Card key={a.id}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12,flexWrap:"wrap"}}><div style={{flex:1}}><h4 style={{margin:0,fontSize:15,fontWeight:600,color:"#e8e6f0"}}>{a.title}</h4>{a.desc&&<p style={{margin:"6px 0 0",fontSize:13,color:"#9898ae",lineHeight:1.6}}>{a.desc}</p>}</div><div style={{fontSize:11,color:ov?"#f87171":"#34d399",fontWeight:500,padding:"4px 10px",borderRadius:6,background:ov?"rgba(248,113,113,0.1)":"rgba(52,211,153,0.1)"}}>{ov?"انتهى":"مفتوح"} • {new Date(a.deadline).toLocaleDateString("ar-SA")}</div></div>
+          {isT?<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12}}><span style={{fontSize:12,color:"#8b8b9e"}}>📤 {sc} تسليم</span><div style={{display:"flex",gap:8}}><button onClick={()=>setVs(a.id)} style={{padding:"6px 14px",background:"rgba(139,92,246,0.15)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:8,color:"#c4b5fd",cursor:"pointer",fontFamily:"inherit",fontSize:12}}>عرض التسليمات</button><button onClick={()=>updateA(assignments.filter(x=>x.id!==a.id))} style={{padding:"6px 14px",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:8,color:"#f87171",cursor:"pointer",fontFamily:"inherit",fontSize:12}}>حذف</button></div></div>
+          :<div style={{marginTop:12}}>{ms?<div style={{padding:"10px 14px",background:"rgba(52,211,153,0.08)",borderRadius:10,border:"1px solid rgba(52,211,153,0.15)"}}><div style={{display:"flex",alignItems:"center",gap:6,color:"#34d399",fontSize:13,fontWeight:500}}>✓ تم التسليم {ms.grade&&<span style={{marginRight:10,color:"#fbbf24"}}>التقييم: {ms.grade}/٥ ⭐</span>}</div></div>:!ov?<div style={{display:"flex",gap:8}}><textarea value={st} onChange={e=>setSt(e.target.value)} placeholder="اكتبي إجابتك..." rows={2} style={{...iS,flex:1,resize:"vertical",marginTop:0}}/><button onClick={()=>subW(a.id)} style={{padding:"0 18px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,whiteSpace:"nowrap",alignSelf:"flex-end"}}>تسليم</button></div>:<p style={{fontSize:12,color:"#f87171"}}>انتهى وقت التسليم</p>}</div>}
+        </Card>})}
+    </div>
+  </div>;
+}
+
+// Quizzes
+function QuizP({isT,user,quizzes,updateQ,quizResults,updateQR}){
+  const[sf,setSf]=useState(false);const[qt,setQt]=useState("");
+  const[qs,setQs]=useState([{q:"",options:["","","",""],correct:0}]);
+  const[aq,setAq]=useState(null);const[ans,setAns]=useState({});const[sr,setSr]=useState(null);
+  const addQ=()=>setQs([...qs,{q:"",options:["","","",""],correct:0}]);
+  const uQ=(i,f,v)=>{const u=[...qs];if(f==="q")u[i].q=v;else if(f==="correct")u[i].correct=v;else u[i].options[f]=v;setQs(u)};
+  const create=()=>{if(!qt.trim()||qs.some(q=>!q.q.trim()||q.options.some(o=>!o.trim())))return;updateQ([{id:"qz"+Date.now(),title:qt.trim(),questions:qs,createdAt:new Date().toISOString()},...quizzes]);setQt("");setQs([{q:"",options:["","","",""],correct:0}]);setSf(false)};
+  const submit=(qid)=>{const qz=quizzes.find(q=>q.id===qid);let sc=0;qz.questions.forEach((q,i)=>{if(ans[i]===q.correct)sc++});const r={id:"qr"+Date.now(),quizId:qid,studentName:user.name,score:sc,total:qz.questions.length,submittedAt:new Date().toISOString()};updateQR([r,...quizResults]);setSr(r);setAq(null);setAns({})};
+
+  if(sr)return <div><PT icon="📊" title="نتيجة الاختبار"/><Card style={{textAlign:"center",padding:40}}><div style={{fontSize:64,marginBottom:16}}>{sr.score===sr.total?"🏆":sr.score>=sr.total/2?"👏":"💪"}</div><h3 style={{color:"#c4b5fd",fontSize:22,margin:"0 0 8px"}}>{sr.score} / {sr.total}</h3><p style={{color:"#8b8b9e",fontSize:14}}>{sr.score===sr.total?"ممتازة! 🌟":sr.score>=sr.total/2?"أحسنتِ! 👍":"حاولي مرة أخرى 💪"}</p><button onClick={()=>setSr(null)} style={{marginTop:20,padding:"10px 30px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>رجوع</button></Card></div>;
+
+  if(aq){const qz=quizzes.find(q=>q.id===aq);return <div><button onClick={()=>{setAq(null);setAns({})}} style={bkS}>← رجوع</button><PT icon="❓" title={qz.title}/>{qz.questions.map((q,qi)=><Card key={qi} style={{marginBottom:12}}><h4 style={{margin:"0 0 12px",fontSize:14,color:"#e8e6f0"}}>س{qi+1}: {q.q}</h4><div style={{display:"flex",flexDirection:"column",gap:8}}>{q.options.map((opt,oi)=><button key={oi} onClick={()=>setAns({...ans,[qi]:oi})} style={{padding:"10px 14px",borderRadius:10,border:"1px solid",cursor:"pointer",fontSize:13,fontFamily:"inherit",textAlign:"right",direction:"rtl",background:ans[qi]===oi?"rgba(139,92,246,0.2)":"rgba(139,92,246,0.04)",borderColor:ans[qi]===oi?"rgba(139,92,246,0.5)":"rgba(139,92,246,0.1)",color:ans[qi]===oi?"#c4b5fd":"#9898ae"}}>{opt}</button>)}</div></Card>)}<button onClick={()=>submit(aq)} disabled={Object.keys(ans).length<qz.questions.length} style={{padding:"12px 30px",background:Object.keys(ans).length<qz.questions.length?"rgba(139,92,246,0.2)":"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:12,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:14,marginTop:8}}>تسليم الاختبار</button></div>}
+
+  return <div><PT icon="❓" title={isT?"إدارة الاختبارات":"اختباراتي"}/>
+    {isT&&<button onClick={()=>setSf(!sf)} style={{display:"flex",alignItems:"center",gap:8,padding:"10px 20px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:12,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,marginBottom:16}}>+ اختبار جديد</button>}
+    {sf&&<Card style={{marginBottom:16}}><h4 style={{margin:"0 0 12px",color:"#c4b5fd"}}>اختبار جديد</h4><input value={qt} onChange={e=>setQt(e.target.value)} placeholder="عنوان الاختبار" style={{...iS,marginBottom:12}}/>{qs.map((q,qi)=><div key={qi} style={{background:"rgba(139,92,246,0.06)",borderRadius:12,padding:14,marginBottom:10}}><input value={q.q} onChange={e=>uQ(qi,"q",e.target.value)} placeholder={"السؤال "+(qi+1)} style={{...iS,marginBottom:8,fontWeight:600}}/>{q.options.map((opt,oi)=><div key={oi} style={{display:"flex",gap:8,alignItems:"center",marginBottom:4}}><input type="radio" name={"c-"+qi} checked={q.correct===oi} onChange={()=>uQ(qi,"correct",oi)} style={{accentColor:"#8b5cf6"}}/><input value={opt} onChange={e=>uQ(qi,oi,e.target.value)} placeholder={"الخيار "+(oi+1)} style={{...iS,flex:1,marginTop:0}}/></div>)}</div>)}<div style={{display:"flex",gap:8}}><button onClick={addQ} style={{padding:"8px 16px",background:"rgba(139,92,246,0.15)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:8,color:"#c4b5fd",cursor:"pointer",fontFamily:"inherit",fontSize:12}}>+ سؤال</button><button onClick={create} style={{padding:"8px 20px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:8,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:12}}>إنشاء</button></div></Card>}
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+      {quizzes.length===0?<Card><p style={{color:"#8b8b9e",textAlign:"center"}}>لا توجد اختبارات</p></Card>:quizzes.map(qz=>{
+        const mr=!isT?quizResults.find(r=>r.quizId===qz.id&&r.studentName===user.name):null;
+        const ar=quizResults.filter(r=>r.quizId===qz.id);
+        return <Card key={qz.id}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><h4 style={{margin:0,fontSize:15,fontWeight:600,color:"#e8e6f0"}}>{qz.title}</h4><p style={{margin:"4px 0 0",fontSize:12,color:"#8b8b9e"}}>{qz.questions.length} أسئلة</p></div>{isT?<div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{fontSize:12,color:"#8b8b9e"}}>{ar.length} نتيجة</span><button onClick={()=>updateQ(quizzes.filter(q=>q.id!==qz.id))} style={{padding:"6px 12px",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:8,color:"#f87171",cursor:"pointer",fontFamily:"inherit",fontSize:12}}>حذف</button></div>:mr?<div style={{padding:"8px 14px",background:"rgba(52,211,153,0.08)",borderRadius:10,border:"1px solid rgba(52,211,153,0.15)",color:"#34d399",fontSize:13,fontWeight:600}}>{mr.score}/{mr.total} ✅</div>:<button onClick={()=>setAq(qz.id)} style={{padding:"8px 18px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13}}>ابدأي</button>}</div>{isT&&ar.length>0&&<div style={{marginTop:12,padding:"10px 14px",background:"rgba(139,92,246,0.06)",borderRadius:10}}>{ar.map(r=><div key={r.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#9898ae",padding:"4px 0"}}><span>{r.studentName}</span><span style={{color:r.score>=r.total/2?"#34d399":"#f87171"}}>{r.score}/{r.total}</span></div>)}</div>}</Card>})}
+    </div>
+  </div>;
+}
+
+// Chat
+function ChatP({user,isT,chatMessages,updateChat,students}){
+  const[msg,setMsg]=useState("");const[fil,setFil]=useState("all");const ce=useRef(null);
+  useEffect(()=>{ce.current?.scrollIntoView({behavior:"smooth"})},[chatMessages]);
+  const send=()=>{if(!msg.trim())return;updateChat([...chatMessages,{id:"msg"+Date.now(),sender:user.name,role:user.role,text:msg.trim(),timestamp:new Date().toISOString()}]);setMsg("")};
+  const fm=fil==="all"?chatMessages:chatMessages.filter(m=>m.sender===fil||m.role==="teacher");
+
+  return <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 80px)"}}><PT icon="💬" title="المحادثات"/>
+    {isT&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}><button onClick={()=>setFil("all")} style={{padding:"6px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontFamily:"inherit",background:fil==="all"?"rgba(139,92,246,0.25)":"rgba(139,92,246,0.06)",color:fil==="all"?"#c4b5fd":"#8b8b9e"}}>الكل</button>{students.map(s=><button key={s.name} onClick={()=>setFil(s.name)} style={{padding:"6px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontFamily:"inherit",background:fil===s.name?"rgba(139,92,246,0.25)":"rgba(139,92,246,0.06)",color:fil===s.name?"#c4b5fd":"#8b8b9e"}}>{s.name}</button>)}</div>}
+    <Card style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",padding:0}}>
+      <div style={{flex:1,overflowY:"auto",padding:16}}>{fm.length===0?<p style={{color:"#8b8b9e",textAlign:"center",padding:40}}>لا توجد رسائل 💬</p>:fm.map(m=><div key={m.id} style={{display:"flex",justifyContent:m.sender===user.name?"flex-start":"flex-end",marginBottom:10}}><div style={{maxWidth:"75%",padding:"10px 14px",borderRadius:14,background:m.role==="teacher"?"linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.1))":"rgba(139,92,246,0.1)",border:"1px solid "+(m.role==="teacher"?"rgba(245,158,11,0.2)":"rgba(139,92,246,0.15)")}}><div style={{fontSize:11,fontWeight:600,color:m.role==="teacher"?"#fbbf24":"#67e8f9",marginBottom:4}}>{m.sender} {m.role==="teacher"&&"👩‍🏫"}</div><p style={{margin:0,fontSize:13,color:"#d4d2e0",lineHeight:1.6}}>{m.text}</p><div style={{fontSize:10,color:"#6b6b80",marginTop:4,textAlign:"left"}}>{new Date(m.timestamp).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}</div></div></div>)}<div ref={ce}/></div>
+      <div style={{display:"flex",gap:8,padding:14,borderTop:"1px solid rgba(139,92,246,0.1)"}}><input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="اكتبي رسالتك..." style={{...iS,flex:1,marginTop:0}}/><button onClick={send} style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>◀</button></div>
+    </Card>
+  </div>;
+}
+
+// Honor Board
+function HonorP({isT,honorBoard,updateH,students}){
+  const[n,setN]=useState("");const[r,setR]=useState("");
+  const add=()=>{if(!n||!r.trim())return;updateH([{id:"h"+Date.now(),name:n,reason:r.trim(),date:new Date().toISOString()},...honorBoard]);setN("");setR("")};
+  const medals=["🥇","🥈","🥉"];
+  return <div><PT icon="🏆" title="لوحة الشرف" sub="تكريم المتميزات"/>
+    {isT&&<Card style={{marginBottom:20}}><h4 style={{margin:"0 0 12px",color:"#c4b5fd"}}>إضافة تكريم</h4><select value={n} onChange={e=>setN(e.target.value)} style={{...iS,marginBottom:8}}><option value="">اختاري الطالبة</option>{students.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}</select><input value={r} onChange={e=>setR(e.target.value)} placeholder="سبب التكريم" style={{...iS,marginBottom:10}}/><button onClick={add} style={{padding:"10px 24px",background:"linear-gradient(135deg,#f59e0b,#ef4444)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13}}>تكريم 🌟</button></Card>}
+    {honorBoard.length===0?<Card style={{textAlign:"center",padding:40}}><span style={{fontSize:48}}>🏆</span><p style={{color:"#8b8b9e",marginTop:12}}>لوحة الشرف فارغة</p></Card>
+    :<div style={{display:"flex",flexDirection:"column",gap:12}}>{honorBoard.map((h,i)=><Card key={h.id} style={{display:"flex",alignItems:"center",gap:14,...(i<3?{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.15)"}:{})}}><span style={{fontSize:32,flexShrink:0}}>{medals[i]||"⭐"}</span><div style={{flex:1}}><h4 style={{margin:0,fontSize:15,fontWeight:600,color:i<3?"#fbbf24":"#e8e6f0"}}>{h.name}</h4><p style={{margin:"4px 0 0",fontSize:12,color:"#9898ae"}}>{h.reason}</p></div><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:11,color:"#6b6b80"}}>{new Date(h.date).toLocaleDateString("ar-SA")}</span>{isT&&<button onClick={()=>updateH(honorBoard.filter(x=>x.id!==h.id))} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:14}}>✕</button>}</div></Card>)}</div>}
+  </div>;
+}
+
+// Reports
+function ReportsP({students,assignments,submissions,quizResults}){
+  const avg=quizResults.length>0?(quizResults.reduce((s,r)=>s+(r.score/r.total*100),0)/quizResults.length).toFixed(1):0;
+  const sr=assignments.length>0&&students.length>0?((submissions.length/(assignments.length*students.length))*100).toFixed(1):0;
+  return <div><PT icon="📊" title="التقارير والإحصائيات"/>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:24}}>
+      <SC icon="👩‍🎓" label="الطالبات" value={students.length} color="#67e8f9"/><SC icon="📝" label="الواجبات" value={assignments.length} color="#a78bfa"/>
+      <SC icon="📤" label="التسليمات" value={submissions.length} color="#34d399"/><SC icon="📈" label="معدل التسليم" value={sr+"%"} color="#fbbf24"/>
+      <SC icon="🎯" label="متوسط الدرجات" value={avg+"%"} color="#f87171"/><SC icon="❓" label="نتائج الاختبارات" value={quizResults.length} color="#06b6d4"/>
+    </div>
+    <Card><h3 style={{margin:"0 0 16px",fontSize:16,fontWeight:600,color:"#c4b5fd"}}>📋 تفاصيل الأداء</h3>
+      {students.length===0?<p style={{color:"#8b8b9e",textAlign:"center"}}>لا توجد طالبات</p>
+      :<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr style={{borderBottom:"1px solid rgba(139,92,246,0.15)"}}><th style={{textAlign:"right",padding:"10px 12px",color:"#a5a3b5",fontWeight:600,fontSize:12}}>الطالبة</th><th style={{textAlign:"center",padding:"10px 12px",color:"#a5a3b5",fontWeight:600,fontSize:12}}>واجبات</th><th style={{textAlign:"center",padding:"10px 12px",color:"#a5a3b5",fontWeight:600,fontSize:12}}>اختبارات</th><th style={{textAlign:"center",padding:"10px 12px",color:"#a5a3b5",fontWeight:600,fontSize:12}}>متوسط</th><th style={{textAlign:"center",padding:"10px 12px",color:"#a5a3b5",fontWeight:600,fontSize:12}}>الحالة</th></tr></thead>
+      <tbody>{students.map(s=>{const ms=submissions.filter(x=>x.studentName===s.name);const mr=quizResults.filter(x=>x.studentName===s.name);const ma=mr.length>0?(mr.reduce((sum,r)=>sum+(r.score/r.total*100),0)/mr.length).toFixed(0):"-";const st=ms.length>=assignments.length*0.8?"ممتازة":ms.length>=assignments.length*0.5?"جيدة":"تحتاج متابعة";const sc=st==="ممتازة"?"#34d399":st==="جيدة"?"#fbbf24":"#f87171";
+        return <tr key={s.name} style={{borderBottom:"1px solid rgba(139,92,246,0.06)"}}><td style={{padding:"10px 12px",color:"#d4d2e0"}}>{s.name}</td><td style={{padding:"10px 12px",textAlign:"center",color:"#d4d2e0"}}>{ms.length}/{assignments.length}</td><td style={{padding:"10px 12px",textAlign:"center",color:"#d4d2e0"}}>{mr.length}</td><td style={{padding:"10px 12px",textAlign:"center",color:ma!=="-"?(parseInt(ma)>=70?"#34d399":"#f87171"):"#8b8b9e"}}>{ma}{ma!=="-"?"%":""}</td><td style={{padding:"10px 12px",textAlign:"center"}}><span style={{padding:"3px 10px",borderRadius:6,fontSize:11,background:sc+"15",color:sc}}>{st}</span></td></tr>})}</tbody></table></div>}
+    </Card>
+  </div>;
+}
+
+// Links
+function LinksP(){
+  return <div><PT icon="🔗" title="روابط مهمة" sub="منصات تعليمية وموارد مفيدة"/><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:12}}>{LINKS.map(l=><a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><Card style={{cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:32,flexShrink:0}}>{l.icon}</span><div><h4 style={{margin:0,fontSize:14,fontWeight:600,color:"#c4b5fd"}}>{l.title}</h4><p style={{margin:"4px 0 0",fontSize:12,color:"#8b8b9e"}}>{l.desc}</p></div></div></Card></a>)}</div></div>;
+}
+
+// Students Management
+function StudentsP({students,updateStudents,submissions,quizResults}){
+  const[nn,setNn]=useState("");
+  const add=()=>{const t=nn.trim();if(!t||students.find(s=>s.name===t))return;updateStudents([...students,{name:t,id:"s"+Date.now(),joinDate:new Date().toISOString()}]);setNn("")};
+  return <div><PT icon="👩‍🎓" title="إدارة الطالبات"/>
+    <Card style={{marginBottom:20}}><div style={{display:"flex",gap:8}}><input value={nn} onChange={e=>setNn(e.target.value)} placeholder="اسم الطالبة الجديدة" style={{...iS,flex:1,marginTop:0}} onKeyDown={e=>e.key==="Enter"&&add()}/><button onClick={add} style={{padding:"0 20px",background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",border:"none",borderRadius:12,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,whiteSpace:"nowrap"}}>إضافة</button></div></Card>
+    {students.length===0?<Card><p style={{color:"#8b8b9e",textAlign:"center"}}>لا توجد طالبات</p></Card>
+    :<div style={{display:"flex",flexDirection:"column",gap:8}}>{students.map(s=>{const sc=submissions.filter(x=>x.studentName===s.name).length;const qc=quizResults.filter(x=>x.studentName===s.name).length;
+      return <Card key={s.id} style={{display:"flex",alignItems:"center",gap:14}}><div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#06b6d4,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>👩‍🎓</div><div style={{flex:1}}><h4 style={{margin:0,fontSize:14,fontWeight:600,color:"#e8e6f0"}}>{s.name}</h4><p style={{margin:"2px 0 0",fontSize:11,color:"#8b8b9e"}}>{sc} واجب • {qc} اختبار</p></div><button onClick={()=>{if(confirm("حذف "+s.name+"؟"))updateStudents(students.filter(x=>x.name!==s.name))}} style={{padding:"6px 12px",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:8,color:"#f87171",cursor:"pointer",fontFamily:"inherit",fontSize:12}}>حذف</button></Card>})}</div>}
+  </div>;
+}
+
+// Main App
+function App(){
+  const[cu,setCu]=useState(null);
+  const[page,setPage]=useState("home");
+  const[so,setSo]=useState(false);
+  const[isMobile,setIsMobile]=useState(window.innerWidth<=768);
+  const[students,setStudents]=useState(()=>load(SK.STU,[]));
+  const[assignments,setAssignments]=useState(()=>load(SK.ASN,[]));
+  const[submissions,setSubmissions]=useState(()=>load(SK.SUB,[]));
+  const[quizzes,setQuizzes]=useState(()=>load(SK.QZ,[]));
+  const[quizResults,setQuizResults]=useState(()=>load(SK.QR,[]));
+  const[chatMessages,setChatMessages]=useState(()=>load(SK.CH,[]));
+  const[honorBoard,setHonorBoard]=useState(()=>load(SK.HN,[]));
+  const[announcements,setAnnouncements]=useState(()=>load(SK.AN,[]));
+
+  useEffect(()=>{const h=()=>setIsMobile(window.innerWidth<=768);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
+
+  const up=(setter,key)=>(data)=>{setter(data);save(key,data)};
+  const uStu=up(setStudents,SK.STU);const uAsn=up(setAssignments,SK.ASN);
+  const uSub=up(setSubmissions,SK.SUB);const uQz=up(setQuizzes,SK.QZ);
+  const uQR=up(setQuizResults,SK.QR);const uCh=up(setChatMessages,SK.CH);
+  const uHn=up(setHonorBoard,SK.HN);const uAn=up(setAnnouncements,SK.AN);
+
+  const isT=cu?.role==="teacher";
+
+  if(!cu)return <Login students={students} updateStudents={uStu} onLogin={setCu}/>;
+
+  const nav=isT?[
+    {id:"home",l:"الرئيسية",i:"🏠"},{id:"lessons",l:"الدروس",i:"📚"},{id:"assignments",l:"الواجبات",i:"📝"},
+    {id:"quizzes",l:"الاختبارات",i:"❓"},{id:"chat",l:"المحادثات",i:"💬"},{id:"honor",l:"لوحة الشرف",i:"🏆"},
+    {id:"reports",l:"التقارير",i:"📊"},{id:"links",l:"روابط مهمة",i:"🔗"},{id:"students",l:"الطالبات",i:"👩‍🎓"},
+  ]:[
+    {id:"home",l:"الرئيسية",i:"🏠"},{id:"lessons",l:"الدروس",i:"📚"},{id:"assignments",l:"واجباتي",i:"📝"},
+    {id:"quizzes",l:"اختباراتي",i:"❓"},{id:"chat",l:"المحادثات",i:"💬"},{id:"honor",l:"لوحة الشرف",i:"🏆"},
+    {id:"links",l:"روابط مهمة",i:"🔗"},
+  ];
+
+  return <div style={{display:"flex",minHeight:"100vh"}}>
+    {isMobile&&<button onClick={()=>setSo(!so)} style={{position:"fixed",top:12,right:12,zIndex:1001,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(139,92,246,0.3)",border:"1px solid rgba(139,92,246,0.5)",color:"#fff",borderRadius:10,width:42,height:42,cursor:"pointer",fontSize:20}}>☰</button>}
+    <aside style={{width:260,background:"rgba(15,10,40,0.95)",borderLeft:"1px solid rgba(139,92,246,0.15)",padding:"24px 0",display:"flex",flexDirection:"column",position:"fixed",top:0,right:0,height:"100vh",zIndex:1000,backdropFilter:"blur(20px)",transition:"transform 0.3s ease",...(isMobile?{transform:so?"translateX(0)":"translateX(100%)"}:{})}}>
+      <div style={{padding:"0 20px",marginBottom:32}}><div style={{display:"flex",alignItems:"center",gap:12}}><div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#8b5cf6,#06b6d4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>📐</div><div><h1 style={{margin:0,fontSize:17,fontWeight:700,background:"linear-gradient(135deg,#c4b5fd,#67e8f9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>منصة عواطف</h1><p style={{margin:0,fontSize:11,color:"#8b8b9e"}}>رياضيات ٣م</p></div></div></div>
+      <div style={{margin:"0 12px 20px",background:"rgba(139,92,246,0.08)",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}><div style={{width:32,height:32,borderRadius:8,background:isT?"linear-gradient(135deg,#f59e0b,#ef4444)":"linear-gradient(135deg,#06b6d4,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>{isT?"👩‍🏫":"👩‍🎓"}</div><div><div style={{fontSize:13,fontWeight:600,color:"#e8e6f0"}}>{cu.name}</div><div style={{fontSize:10,color:"#8b8b9e"}}>{isT?"المعلمة":"طالبة"}</div></div></div>
+      <nav style={{flex:1,padding:"0 10px",overflowY:"auto"}}>{nav.map(({id,l,i})=><button key={id} onClick={()=>{setPage(id);setSo(false)}} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"11px 14px",border:"none",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:page===id?600:400,fontFamily:"inherit",direction:"rtl",textAlign:"right",background:page===id?"linear-gradient(135deg,rgba(139,92,246,0.25),rgba(6,182,212,0.15))":"transparent",color:page===id?"#c4b5fd":"#9898ae",transition:"all 0.2s",marginBottom:2}}><span style={{fontSize:16}}>{i}</span> {l}</button>)}</nav>
+      <div style={{padding:"0 10px",marginTop:12}}><button onClick={()=>{setCu(null);setPage("home");setSo(false)}} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"11px 14px",border:"none",borderRadius:10,cursor:"pointer",fontSize:13,fontFamily:"inherit",direction:"rtl",textAlign:"right",background:"rgba(239,68,68,0.1)",color:"#f87171"}}>🚪 تسجيل خروج</button></div>
+    </aside>
+    <main style={{flex:1,marginRight:isMobile?0:260,padding:isMobile?"60px 16px 16px":"28px 36px",overflowY:"auto",minHeight:"100vh"}}>
+      {page==="home"&&<Home user={cu} isT={isT} assignments={assignments} submissions={submissions} students={students} quizResults={quizResults} announcements={announcements} updateAnnouncements={uAn} setPage={setPage}/>}
+      {page==="lessons"&&<LessonsP/>}
+      {page==="assignments"&&<AssignP isT={isT} user={cu} assignments={assignments} updateA={uAsn} submissions={submissions} updateS={uSub} students={students}/>}
+      {page==="quizzes"&&<QuizP isT={isT} user={cu} quizzes={quizzes} updateQ={uQz} quizResults={quizResults} updateQR={uQR}/>}
+      {page==="chat"&&<ChatP user={cu} isT={isT} chatMessages={chatMessages} updateChat={uCh} students={students}/>}
+      {page==="honor"&&<HonorP isT={isT} honorBoard={honorBoard} updateH={uHn} students={students}/>}
+      {page==="reports"&&isT&&<ReportsP students={students} assignments={assignments} submissions={submissions} quizResults={quizResults}/>}
+      {page==="links"&&<LinksP/>}
+      {page==="students"&&isT&&<StudentsP students={students} updateStudents={uStu} submissions={submissions} quizResults={quizResults}/>}
+    </main>
+    {so&&isMobile&&<div onClick={()=>setSo(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:999}}/>}
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
